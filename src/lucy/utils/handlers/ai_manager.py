@@ -351,7 +351,7 @@ class Completions:
             }
             if response_format:
                 request_data['response_format'] = response_format
-            if model in {'chatgpt-4o-latest', 'o1-mini', 'o1-preview'}:
+            if model in {'chatgpt-4o-latest', 'gpt-4.1', 'gpt-4.1-nano', 'o1-mini', 'o1-preview', 'o3-mini', 'o4-mini'}:
                 request_data['max_completion_tokens'] = int(max_tokens)
             else:
                 request_data['stop'] = stop,
