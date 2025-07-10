@@ -310,8 +310,6 @@ class Hybrid(commands.Cog):
                         if compounds:
                             smiles = compounds[0].isomeric_smiles
                         else:
-                            helm = construct_helm_from_peptide(mol)
-                            smiles = manual_helm_to_smiles(helm)
                             if not smiles and has_translate_on(ctx):
                                 mol = translate(mol, get_original_language_name(), get_target_language_name())
                                 mol_obj = Chem.MolFromSmiles(mol)

@@ -30,7 +30,7 @@ DIR_TEMP = join(DIR_BASE, 'py_vyrtuous', 'temp')
 
 #### PATHS
 ### Path: Root (Py_vyrtuous)
-PATH_TOML = join(DIR_HOME, 'git', 'pyVyrtuous', 'pyproject.toml')
+PATH_TOML = join(DIR_HOME, 'git', 'python', 'OmniPy', 'pyproject.toml')
 ## Path: Source (src)
 # Path: Py_Py_vyrtuous (py_vyrtuous)
 PATH_CONFIG = join(DIR_BASE, 'py_vyrtuous', 'config.py')
