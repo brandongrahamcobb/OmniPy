@@ -34,6 +34,7 @@ from rdkit.Chem import AllChem, Crippen
 from random import choice
 from typing import Dict, List, Optional
 
+import aiohttp
 import asyncio
 import datetime
 import discord
@@ -49,6 +50,20 @@ import traceback
 import uuid
 import requests
 
+async def fetch_smiles_from_pubchem(cid: int) -> str | None:
+    url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/property/SMILES/JSON"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    logger.warning("PubChem request failed for CID %s with status %s", cid, resp.status)
+                    return None
+                data = await resp.json()
+                return data["PropertyTable"]["Properties"][0]["SMILES"]
+    except Exception as e:
+        logger.exception("Error retrieving SMILES for CID %s: %s", cid, str(e))
+        return None
+        
 class Hybrid(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -64,6 +79,36 @@ class Hybrid(commands.Cog):
         if not os.path.exists(self.uploads_dir):
             os.makedirs(self.uploads_dir)
 
+    @commands.hybrid_command(name='colorize', description=f'Usage: between `lcolorize 0 0 0` and `lcolorize 255 255 255` or `l colorize <color>`')
+    @commands.has_permissions(manage_roles=True) # Do you have manage_roles permissions?
+    async def colorize(self, ctx: commands.Context, r: str = commands.parameter(default='blurple', description='Anything between 0 and 255 or a color.'), g: str = commands.parameter(default='147', description='Anything betwen 0 and 255.'), b: str = commands.parameter(default='165', description='Anything between 0 and 255.')):
+        if ctx.interaction:
+            async with ctx.typing():
+                await ctx.interaction.response.defer(ephemeral=True)
+        if not await self.predicator.is_at_home_func(ctx.guild.id):
+            return
+        if not self.predicator.is_release_mode_func(ctx):
+            return
+        r = int(r)
+        g = int(g)
+        b = int(b)
+        guildroles = await ctx.guild.fetch_roles()
+        bot_top_role = max(ctx.guild.me.roles, key=lambda r: r.position)
+        position = bot_top_role.position - 1 if bot_top_role.position > 1 else 1
+        for arg in ctx.author.roles:
+            if arg.name.isnumeric():
+                await ctx.author.remove_roles(arg)
+        for arg in guildroles:
+            if arg.name.lower() == f'{r}{g}{b}':
+                await ctx.author.add_roles(arg)
+                await arg.edit(position=position)
+                await ctx.send(f'I successfully changed your role color to {r}, {g}, {b}')
+                return
+        newrole = await ctx.guild.create_role(name=f'{r}{g}{b}', color=discord.Color.from_rgb(r, g, b), reason='new color')
+        await newrole.edit(position=position)
+        await ctx.author.add_roles(newrole)
+        await ctx.send(f'I successfully changed your role color to {r}, {g}, {b}')
+        
     def get_language_name_from_role(role_name: str) -> str:
         """
         Extracts the language name from a role name with either "original-" or "target-" prefix.
@@ -251,159 +296,194 @@ class Hybrid(commands.Cog):
             await ctx.send('The music is not paused.')
 
 
-    @commands.hybrid_command(name='d', description=f'Usage: d 2 <mol> <mol> or d glow <mol> or d gsrs <mol> or d shadow <mole>.')
+    @commands.hybrid_command(
+        name='d',
+        description='Usage: d 2 <mol> <mol> or d glow <mol> or d gsrs <mol> or d shadow <mol>.'
+    )
     async def d(
         self,
         ctx: commands.Context,
-        option: str = commands.parameter(default='glow', description='Compare `compare or Draw style `glow` `gsrs` `shadow`.'),
+        option: str = commands.parameter(default='glow'),
         *,
-        chems: str = commands.parameter(default=None, description='Any molecule'),
-        dupes: int = commands.parameter(default=1, description='Quantity of glows'),
-        backwards: bool = commands.parameter(default=False, description='Reverse'),
-        linearity: bool = commands.parameter(default=False, description='Linearity'),
-        rdkit_coords: bool = commands.parameter(default=True, description='rdDepictor'),
-        r: int = commands.parameter(default=0, description='Rotation')
+        chems: str = commands.parameter(default=None),
+        dupes: int = commands.parameter(default=1),
+        backwards: bool = commands.parameter(default=False),
+        linearity: bool = commands.parameter(default=False),
+        rdkit_coords: bool = commands.parameter(default=True),
+        r: int = commands.parameter(default=0)
     ):
+        logger.info("Command `d` invoked by %s with option='%s'", ctx.author, option)
+    
         if not self.predicator.is_release_mode_func(ctx):
+            logger.warning("Blocked execution for %s: not in release mode", ctx.author)
             return
-        
+    
+        # Type guards
+        reverse = backwards if isinstance(backwards, bool) else False
         linearity = linearity if isinstance(linearity, bool) else False
         rdkit_bool = rdkit_coords if isinstance(rdkit_coords, bool) else True
         quantity = dupes if isinstance(dupes, int) else 1
         rotation = r if isinstance(r, int) else 0
-        reverse = backwards if isinstance(backwards, bool) else False
-        if isinstance(quantity, commands.Parameter):
-            quantity = 1
-        if isinstance(rotation, commands.Parameter):
-            rotation = 0
+    
+        logger.debug("Parsed flags: reverse=%s, linearity=%s, rdkit=%s, quantity=%d, rotation=%d", reverse, linearity, rdkit_bool, quantity, rotation)
+    
         async def function(linearity):
+            logger.info("Executing drawing function with linearity=%s", linearity)
+    
             async def get_attachment_text(ctx):
+                logger.debug("Checking for attachments")
                 if ctx.message.attachments:
+                    logger.info("Attachment detected; reading content")
                     content = await ctx.message.attachments[0].read()
-                    return content.decode('utf-8')
+                    text = content.decode('utf-8')
+                    logger.debug("Attachment content preview: %s", text[:100])
+                    return text
                 return None
+    
             async def get_molecules(molecules):
-            
+                logger.info("Parsing molecule input: %s", molecules)
+    
                 if not molecules:
+                    logger.warning("No molecules provided")
                     await self.handler.send_message(ctx, content='No molecules provided.')
-                    return
+                    return None, None, None
+    
                 name_match = re.search(r'"([^"]+)"$', molecules)
-                if name_match:
-                    name = name_match.group(1)
-                    molecule_list = molecules[:name_match.start()].strip()
-                else:
-                    name = 'Untitled'
-                    molecule_list = molecules
-                if '.' in molecule_list:
-                    molecule_parts = re.split(r'(?<!")\.(?!")', molecule_list)
-                else:
-                    molecule_parts = [molecule_list]
-                fingerprints = []
-                names = molecule_parts
+                name = name_match.group(1) if name_match else "Untitled"
+                molecule_list = molecules[:name_match.start()].strip() if name_match else molecules
+    
+                molecule_parts = re.split(r'(?<!")\.(?!")', molecule_list) if '.' in molecule_list else [molecule_list]
+                logger.debug("Molecule name: %s, Parts: %s", name, molecule_parts)
+    
                 converted_smiles = []
                 for mol in molecule_parts:
+                    logger.info("Processing molecule token: %s", mol)
                     mol_obj = Chem.MolFromSmiles(mol)
                     if mol_obj:
-                        smiles = mol
-                    else:
-                        compounds = pcp.get_compounds(mol, 'name')
-                        if compounds:
-                            smiles = compounds[0].isomeric_smiles
-                        else:
-                            if not smiles and has_translate_on(ctx):
-                                mol = translate(mol, get_original_language_name(), get_target_language_name())
-                                mol_obj = Chem.MolFromSmiles(mol)
-                                if mol_obj:
-                                    smiles = mol
-                                else:
-                                    compounds = pcp.get_compounds(mol, 'name')
-                                    if compounds:
-                                        smiles = compounds[0].isomeric_smiles
-                                    else:
-                                        helm = construct_helm_from_peptide(mol)
-                                        smiles = manual_helm_to_smiles(helm)
-                                if not smiles:
-                                    embed = discord.Embed(description=f'Invalid molecule: {mol}')
-                                    await self.handler.send_message(ctx, content=None, file=None, embed=embed)
-                                    return
-                    #await self.game.distribute_xp(ctx.author.id)
+                        converted_smiles.append(mol)
+                        logger.debug("Valid SMILES directly: %s", mol)
+                        continue
+    
+                    logger.info("SMILES failed; trying PubChem")
+                    compounds = pcp.get_compounds(mol, 'name')
+                    logger.info(compounds)
+                    smiles = await fetch_smiles_from_pubchem(compounds[0].cid)
+                    logger.info(smiles)
+    
+                    if not smiles and self.has_translate_on(ctx):
+                        logger.info("Trying translation fallback for: %s", mol)
+                        try:
+                            mol_translated = translate(mol, get_original_language_name(), get_target_language_name())
+                            mol_obj = Chem.MolFromSmiles(mol_translated)
+                            smiles = mol_translated if mol_obj else None
+                        except Exception as e:
+                            logger.exception("Translation failed: %s", str(e))
+    
+                    if not smiles:
+                        logger.info("Trying HELM fallback for: %s", mol)
+                        try:
+                            helm = construct_helm_from_peptide(mol)
+                            smiles = manual_helm_to_smiles(helm)
+                        except Exception as e:
+                            logger.exception("HELM conversion failed: %s", str(e))
+    
+                    if not smiles:
+                        logger.error("Could not resolve molecule: %s", mol)
+                        embed = discord.Embed(description=f'Invalid molecule: {mol}')
+                        await self.handler.send_message(ctx, embed=embed)
+                        return None, None, None
+    
                     converted_smiles.append(smiles)
-                molecule_objects = [get_mol(smiles, reverse=reverse) for smiles in converted_smiles]
-                return molecule_objects, names, name
-            if ctx.message.attachments:
-                molecules = await get_attachment_text(ctx)
+    
+                molecule_objects = [get_mol(s, reverse=reverse) for s in converted_smiles]
+                logger.debug("Converted SMILES: %s", converted_smiles)
+                return molecule_objects, molecule_parts, name
+    
+            # Read molecule data
             molecules = chems or (await get_attachment_text(ctx) if ctx.message.attachments else None)
+            logger.debug("Final molecule input: %s", molecules)
+    
             if option == '2':
                 molecule_objects, names, name = await get_molecules(molecules)
-                if not molecules:
-                    await self.handler.send_message(ctx, content='No molecules provided.')
+                if not molecule_objects:
                     return
+    
                 pairs = unique_pairs(names)
                 if not pairs:
+                    logger.warning("No valid pairs found")
                     embed = discord.Embed(description='No valid pairs found.')
-                    await self.handler.send_message(ctx, content=None, file=None, embed=embed)
+                    await self.handler.send_message(ctx, embed=embed)
                     return
+    
                 for pair in pairs:
-                    mol = molecule_objects[0]
-                    refmol = molecule_objects[1]
-                    if mol is None or refmol is None:
-                        embed = discord.Embed(description=f'One or both of the molecules {pair[0]} or {pair[1]} are invalid.')
-                        await self.handler.send_message(ctx, content=None, file=None, embed=embed)
+                    mol, refmol = molecule_objects[0], molecule_objects[1]
+                    if not mol or not refmol:
+                        embed = discord.Embed(description=f'{pair[0]} or {pair[1]} is invalid.')
+                        await self.handler.send_message(ctx, embed=embed)
                         continue
-                    else:
-                        fingerprints = [
-                            draw_fingerprint([mol, refmol], rdkit_bool),
-                            draw_fingerprint([refmol, mol], rdkit_bool, rotation)
-                        ]
-                    if len(fingerprints) in [2, 3]:
+    
+                    fingerprints = [
+                        draw_fingerprint([mol, refmol], rdkit_bool),
+                        draw_fingerprint([refmol, mol], rdkit_bool, rotation)
+                    ]
+                    if len(fingerprints) >= 2:
                         linearity = True
-                    combined_image = combine_gallery(fingerprints, names, name, 1, linearity)
-                    await self.handler.send_message(ctx, content=None, file=discord.File(combined_image, f'molecule_comparison.png'))
+                    combined = combine_gallery(fingerprints, names, name, 1, linearity)
+                    await self.handler.send_message(ctx, file=discord.File(combined, 'molecule_comparison.png'))
+    
             elif option == 'glow':
                 molecule_objects, names, name = await get_molecules(molecules)
-                fingerprints = [draw_fingerprint([mol_obj, mol_obj], rdkit_bool, rotation) for mol_obj in molecule_objects]
-                combined_image = combine_gallery(fingerprints, names, name, quantity, linearity)
-                await self.handler.send_message(ctx, content=None, file=discord.File(combined_image, 'molecule_comparison.png'))
+                if not molecule_objects:
+                    return
+                fingerprints = [draw_fingerprint([m, m], rdkit_bool, rotation) for m in molecule_objects]
+                combined = combine_gallery(fingerprints, names, name, quantity, linearity)
+                await self.handler.send_message(ctx, file=discord.File(combined, 'molecule_comparison.png'))
+    
             elif option == 'gsrs':
                 if not molecules:
                     await self.handler.send_message(ctx, content='No molecules provided.')
                     return
                 args = shlex.split(molecules)
                 for molecule_name in args:
-                    if not molecule_name and has_translate_on(ctx):
-                       molecule_name = translate(molecule_name, get_original_language_name(), get_target_language_name())
-                    elif not molecule_name:
-                        await self.handler.send_message(ctx, content=f'{molecule_name} is an unknown molecule.')
+                    if not molecule_name:
+                        await self.handler.send_message(ctx, content='Invalid molecule.')
                         return
-                    #distribute_xp(ctx.author.id)
+                    if self.has_translate_on(ctx):
+                        molecule_name = translate(molecule_name, get_original_language_name(), get_target_language_name())
                     watermarked_image = gsrs(molecule_name)
-                    with io.BytesIO() as image_binary:
-                        watermarked_image.save(image_binary, format='PNG')
-                        image_binary.seek(0)
-                        await self.handler.send_message(ctx, content=None, file=discord.File(fp=image_binary, filename='watermarked_image.png'))
+                    with io.BytesIO() as bio:
+                        watermarked_image.save(bio, format='PNG')
+                        bio.seek(0)
+                        await self.handler.send_message(ctx, file=discord.File(fp=bio, filename='watermarked_image.png'))
+    
             elif option == 'shadow':
                 molecule_objects, names, name = await get_molecules(molecules)
-                molecule_images = [draw_watermarked_molecule(mol_obj, rdkit_bool) for mol_obj in molecule_objects]
-                if len(molecule_images) in [2,3]:
-                    linearity = True  # Set linearity to True for this case
-                combined_image = combine_gallery(molecule_images, names, name, quantity, linearity)
-                await self.handler.send_message(ctx, content=None, file=discord.File(combined_image, 'molecule_comparison.png'))
+                if not molecule_objects:
+                    return
+                molecule_images = [draw_watermarked_molecule(m, rdkit_bool) for m in molecule_objects]
+                if len(molecule_images) in [2, 3]:
+                    linearity = True
+                combined = combine_gallery(molecule_images, names, name, quantity, linearity)
+                await self.handler.send_message(ctx, file=discord.File(combined, 'molecule_comparison.png'))
+    
             else:
-                await self.handler.send_message(ctx, content='Invalid option. Use `compare`, `glow`, `gsrs`, or `shadow`.')
-        if ctx.interaction:
-            await ctx.interaction.response.defer(ephemeral=True)
+                logger.warning("Unknown option: %s", option)
+                await self.handler.send_message(ctx, content='Invalid option. Use `2`, `glow`, `gsrs`, or `shadow`.')
+    
+        # Respond via interaction or typing indicator
+        try:
+            if ctx.interaction:
+                await ctx.interaction.response.defer(ephemeral=True)
+            else:
+                if ctx.channel and isinstance(ctx.channel, discord.abc.GuildChannel):
+                    perms = ctx.channel.permissions_for(ctx.guild.me)
+                    if perms.send_messages:
+                        async with ctx.typing():
+                            await function(linearity)
+                            return
             await function(linearity)
-        else:
-            if ctx.channel and isinstance(ctx.channel, discord.abc.GuildChannel):
-                permissions = ctx.channel.permissions_for(ctx.guild.me)
-                if permissions.send_messages:
-                    async with ctx.typing():
-                        await function(linearity)
-                else:
-                    await function(linearity)
-            else:
-                async with ctx.typing():
-                    await function(linearity)
+        except Exception as e:
+            logger.exception("Unhandled error in command `d`: %s", str(e))
 
     @commands.hybrid_command()
     async def faction(self, ctx, action: str, *, faction_name: str = None):
