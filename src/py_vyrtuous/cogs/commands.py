@@ -80,7 +80,7 @@ class Hybrid(commands.Cog):
             os.makedirs(self.uploads_dir)
 
     @commands.hybrid_command(name='colorize', description=f'Usage: between `lcolorize 0 0 0` and `lcolorize 255 255 255` or `l colorize <color>`')
-    @commands.has_permissions(manage_roles=True) # Do you have manage_roles permissions?
+    #@commands.has_permissions(manage_roles=True) # Do you have manage_roles permissions?
     async def colorize(self, ctx: commands.Context, r: str = commands.parameter(default='blurple', description='Anything between 0 and 255 or a color.'), g: str = commands.parameter(default='147', description='Anything betwen 0 and 255.'), b: str = commands.parameter(default='165', description='Anything between 0 and 255.')):
         if ctx.interaction:
             async with ctx.typing():
