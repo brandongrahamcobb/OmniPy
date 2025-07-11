@@ -990,63 +990,6 @@ class Hybrid(commands.Cog):
                 async with ctx.typing():
                     await function()
 
-    @commands.command(name='wipe', description=f'Usage: lwipe <all|bot|commands|text|user>')
-    @commands.has_permissions(manage_messages=True)
-    async def wipe(self, ctx, option: str = None, limit: int = 100):
-        if ctx.interaction:
-            await ctx.interaction.response.defer(ephemeral=True)
-        if not self.predicator.is_release_mode_func(ctx):
-            return
-        async def function():
-            if limit <= 0 or limit > 100:
-                return await self.handler.send_message(ctx, content='Limit must be between 1 and 100.')
-            check_function = None
-            if option == 'bot':
-                check_function = lambda m: m.author == self.bot.user
-            elif option == 'all':
-                check_function = lambda m: True
-            elif option == 'user':
-                user = ctx.message.mentions[0] if ctx.message.mentions else None
-                if user:
-                    check_function = lambda m: m.author == user
-                else:
-                    return await self.handler.send_message(ctx, content='Please mention a user.')
-            elif option == 'commands':
-                check_function = lambda m: m.content.startswith(ctx.prefix)
-            elif option == 'text':
-                await self.handler.send_message(ctx, content='Provide text to delete messages containing it.')
-                try:
-                    msg_text = await self.bot.wait_for('message', timeout=30.0, check=lambda m: m.author == ctx.author)
-                    check_function = lambda m: msg_text.content in m.content
-                except asyncio.TimeoutError:
-                    return await self.handler.send_message(ctx, content='You took too long to provide text. Cancelling operation.')
-            else:
-                return await self.handler.send_message(ctx, content='Invalid option.')
-            total_deleted = 0
-            while total_deleted < limit:
-                deleted = await ctx.channel.purge(limit=min(limit - total_deleted, 10), check=check_function)
-                if not deleted:
-                    break
-                total_deleted += len(deleted)
-                await asyncio.sleep(1)
-            if total_deleted > 0:
-                await self.handler.send_message(ctx, content=f'Deleted {total_deleted} messages.')
-            else:
-                await self.handler.send_message(ctx, content='No messages matched the criteria.')
-        if ctx.interaction:
-            await ctx.interaction.response.defer(ephemeral=True)
-            await function()
-        else:
-            if ctx.channel and isinstance(ctx.channel, discord.abc.GuildChannel):
-                permissions = ctx.channel.permissions_for(ctx.guild.me)
-                if permissions.send_messages:
-                    async with ctx.typing():
-                        await function()
-                else:
-                    await function()
-            else:
-                async with ctx.typing():
-                    await function()
 
     @commands.command(name='language', description=f'Usage: <command-prefix>language on <your-language> <target-language>')
     async def language(self, ctx, toggle: str, target_lang: str = 'english', source_lang: str = 'auto'):
