@@ -62,19 +62,19 @@ pip install poetry
 
 ```bash
 poetry build --format wheel
-pip install dist/py_vyrtuous-2.8.9-py3-none-any.whl
+pip install dist/omnipy-2.8.9-py3-none-any.whl
 ```
 
 5. Create the PostgreSQL database
 
 ```bash
-createdb py_vyrtuous
+createdb omnipy
 ```
 
 6. Run the SQL setup script
 
 ```bash
-psql py_vyrtuous < script.sql
+psql omnipy < script.sql
 ```
 
 ## Configuration
@@ -107,7 +107,7 @@ Subsequent launches read from this file—no environment variables needed.
 With your venv active, simply run:
 
 ```bash
-py_vyrtuous
+omnipy
 ```
 
 The bot will load or create its config, connect to Discord, and register commands.

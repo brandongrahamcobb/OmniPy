@@ -49,7 +49,7 @@ class Ruderalis(commands.Cog):
             backup_dir = setup_backup_directory('./backups')
             backup_file = perform_backup(
                 db_user='postgres',
-                db_name='py_vyrtuous',
+                db_name='omnipy',
                 db_host='localhost',
                 backup_dir=backup_dir
             )

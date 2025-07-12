@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 package-mode = true
 name = "py_vyrtuous"
-version = "3.7.4"
+version = "3.9.1"
 description = ""
 license = "GPL-3.0-or-later"
 authors = [ "Brandon Graham Cobb <brandongrahamcobb@icloud.com>",]

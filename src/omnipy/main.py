@@ -31,7 +31,7 @@ PACKAGE_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PACKAGE_ROOT))
 
 async def database_init():
-    return await asyncpg.create_pool(database='py_vyrtuous', user='postgres', command_timeout=30)
+    return await asyncpg.create_pool(database='omnipy', user='postgres', command_timeout=30)
 
 async def start_bot(bot, name):
     try:

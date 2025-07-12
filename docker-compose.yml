@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    container_name: omnipy
+    env_file:
+      - /Users/spawd/.env_omnipy
+    volumes:
+      - ./src/omnipy:/app/source
+    ports:
+      - "2000:2000"  # Remove or adjust if not running a web app
+    command: python source/main.py
