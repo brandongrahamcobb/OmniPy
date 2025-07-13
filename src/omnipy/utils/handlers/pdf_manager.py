@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
 from discord.ext import commands
-from py_vyrtuous.utils.inc.setup_logging import logger
+from omnipy.utils.inc.setup_logging import logger
 from typing import List, Optional, Dict
 
 import discord

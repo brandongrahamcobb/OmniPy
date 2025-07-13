@@ -18,17 +18,17 @@
 from discord import Embed, File, app_commands
 from discord.ext import commands
 from googletrans import Translator, LANGUAGES
-from py_vyrtuous.utils.handlers.chemistry_manager import construct_helm_from_peptide, draw_fingerprint, draw_watermarked_molecule, get_mol, get_molecule_name, get_proximity, gsrs, manual_helm_to_smiles
-from py_vyrtuous.utils.handlers.game_manager import Game
-from py_vyrtuous.utils.handlers.image_manager import add_watermark, combine_gallery
-from py_vyrtuous.utils.handlers.message_manager import Message
-from py_vyrtuous.utils.handlers.predicator import Predicator
-from py_vyrtuous.utils.handlers.tag_manager import TagManager
-from py_vyrtuous.utils.inc.helpers import *
-from py_vyrtuous.utils.inc.frames import extract_random_frames
-from py_vyrtuous.utils.inc.google import google
-from py_vyrtuous.utils.inc.script import script
-from py_vyrtuous.utils.inc.unique_pairs import unique_pairs
+from omnipy.utils.handlers.chemistry_manager import construct_helm_from_peptide, draw_fingerprint, draw_watermarked_molecule, get_mol, get_molecule_name, get_proximity, gsrs, manual_helm_to_smiles
+from omnipy.utils.handlers.game_manager import Game
+from omnipy.utils.handlers.image_manager import add_watermark, combine_gallery
+from omnipy.utils.handlers.message_manager import Message
+from omnipy.utils.handlers.predicator import Predicator
+from omnipy.utils.handlers.tag_manager import TagManager
+from omnipy.utils.inc.helpers import *
+from omnipy.utils.inc.frames import extract_random_frames
+from omnipy.utils.inc.google import google
+from omnipy.utils.inc.script import script
+from omnipy.utils.inc.unique_pairs import unique_pairs
 from rdkit import Chem
 from rdkit.Chem import AllChem, Crippen
 from random import choice

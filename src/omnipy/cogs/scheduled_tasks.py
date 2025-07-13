@@ -1,9 +1,9 @@
 from collections import defaultdict
 from discord.ext import commands, tasks
-from py_vyrtuous.utils.handlers.sql_manager import perform_backup, setup_backup_directory
-from py_vyrtuous.utils.inc.helpers import *
-from py_vyrtuous.utils.handlers.role_manager import RoleManager
-from py_vyrtuous.utils.handlers.tag_manager import TagManager
+from omnipy.utils.handlers.sql_manager import perform_backup, setup_backup_directory
+from omnipy.utils.inc.helpers import *
+from omnipy.utils.handlers.role_manager import RoleManager
+from omnipy.utils.handlers.tag_manager import TagManager
 
 import asyncio
 import datetime

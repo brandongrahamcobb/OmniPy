@@ -16,8 +16,8 @@
 '''
 from discord.ext import commands
 from googleapiclient.discovery import build
-from py_vyrtuous.config import Config
-from py_vyrtuous.utils.inc.setup_logging import logger
+from omnipy.config import Config
+from omnipy.utils.inc.setup_logging import logger
 import discord
 
 def google(query: str, num_results: int = 5):

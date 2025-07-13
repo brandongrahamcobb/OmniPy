@@ -15,9 +15,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
 from discord.ext import commands
-from py_vyrtuous.utils.handlers.predicator import Predicator
-from py_vyrtuous.utils.inc.helpers import *
-from py_vyrtuous.utils.inc.setup_logging import logger
+from omnipy.utils.handlers.predicator import Predicator
+from omnipy.utils.inc.helpers import *
+from omnipy.utils.inc.setup_logging import logger
 from os.path import exists
 
 import aiofiles

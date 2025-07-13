@@ -17,7 +17,7 @@
 
 from discord.ext import commands
 from discord.utils import get
-from py_vyrtuous.utils.inc.setup_logging import logger
+from omnipy.utils.inc.setup_logging import logger
 import discord
 import logging
 

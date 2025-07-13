@@ -17,8 +17,8 @@
 
 from decimal import Decimal
 from discord.ext import commands
-from py_vyrtuous.utils.handlers.predicator import Predicator
-from py_vyrtuous.utils.inc.helpers import *
+from omnipy.utils.handlers.predicator import Predicator
+from omnipy.utils.inc.helpers import *
 from os import makedirs
 from os.path import exists
 import asyncpg

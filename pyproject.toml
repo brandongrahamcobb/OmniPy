@@ -4,14 +4,14 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 package-mode = true
-name = "py_vyrtuous"
-version = "3.9.1"
+name = "omnipy"
+version = "4.0.4"
 description = ""
 license = "GPL-3.0-or-later"
 authors = [ "Brandon Graham Cobb <brandongrahamcobb@icloud.com>",]
 readme = "README.md"
 homepage = "https://brandongcobb.com"
-repository = "https://github.com/brandongrahamcobb/lucy.git"
+repository = "https://github.com/brandongrahamcobb/OmniPy.git"
 keywords = [ "chemistry", "Discord", "json", "python", "yaml",]
 
 [tool.poetry.dependencies]
@@ -40,7 +40,7 @@ openai = "^1.86.0"
 tiktoken = "^0.9.0"
 
 [tool.poetry.scripts]
-py_vyrtuous = "py_vyrtuous.main:run"
+omnipy = "omnipy.main:run"
 
 [tool.poetry.dependencies.discord-py]
 extras = [ "voice",]

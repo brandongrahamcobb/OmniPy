@@ -14,10 +14,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
-from py_vyrtuous.utils.inc.helpers import *
-from py_vyrtuous.utils.inc.load_yaml import load_yaml
-from py_vyrtuous.utils.inc.prompt_for_values import prompt_for_values
-from py_vyrtuous.utils.inc.setup_logging import logger
+from omnipy.utils.inc.helpers import *
+from omnipy.utils.inc.load_yaml import load_yaml
+from omnipy.utils.inc.prompt_for_values import prompt_for_values
+from omnipy.utils.inc.setup_logging import logger
 from os import makedirs
 from os.path import dirname, isfile
 from typing import Any, Dict

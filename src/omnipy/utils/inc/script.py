@@ -15,9 +15,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
 from bs4 import BeautifulSoup
-from py_vyrtuous.utils.inc.helpers import *
-from py_vyrtuous.utils.inc.load_yaml import load_yaml
-from py_vyrtuous.utils.inc.setup_logging import logger
+from omnipy.utils.inc.helpers import *
+from omnipy.utils.inc.load_yaml import load_yaml
+from omnipy.utils.inc.setup_logging import logger
 
 import json
 import requests

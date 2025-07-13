@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
-from py_vyrtuous.bots.discord_bot import DiscordBot
-from py_vyrtuous.config import Config
-from py_vyrtuous.utils.inc.helpers import *
-from py_vyrtuous.utils.sec.discord_oauth import discord_app, DiscordOAuth, setup_discord_routes
-from py_vyrtuous.utils.inc.increment_version import increment_version
-from py_vyrtuous.utils.inc.setup_logging import setup_logging
+from omnipy.bots.discord_bot import DiscordBot
+from omnipy.config import Config
+from omnipy.utils.inc.helpers import *
+from omnipy.utils.sec.discord_oauth import discord_app, DiscordOAuth, setup_discord_routes
+from omnipy.utils.inc.increment_version import increment_version
+from omnipy.utils.inc.setup_logging import setup_logging
 from pathlib import Path
 
 import asyncio

@@ -15,17 +15,17 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
 from discord.ext import commands
-from py_vyrtuous.utils.handlers.game_manager import Game
-from py_vyrtuous.utils.handlers.message_manager import Message
-from py_vyrtuous.utils.handlers.predicator import Predicator
-from py_vyrtuous.utils.handlers.role_manager import RoleManager
-from py_vyrtuous.utils.inc.helpers import *
-from py_vyrtuous.utils.inc.setup_logging import logger
+from omnipy.utils.handlers.game_manager import Game
+from omnipy.utils.handlers.message_manager import Message
+from omnipy.utils.handlers.predicator import Predicator
+from omnipy.utils.handlers.role_manager import RoleManager
+from omnipy.utils.inc.helpers import *
+from omnipy.utils.inc.setup_logging import logger
 
 import discord
 import json
 import os
-import py_vyrtuous.utils.inc.handle_users
+import omnipy.utils.inc.handle_users
 import shutil
 import time
 import traceback

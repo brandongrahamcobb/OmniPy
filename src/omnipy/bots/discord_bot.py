@@ -18,8 +18,8 @@ import asyncpg
 import discord
 
 from discord.ext import commands
-from py_vyrtuous.utils.inc.helpers import *
-from py_vyrtuous.utils.inc.setup_logging import logger
+from omnipy.utils.inc.helpers import *
+from omnipy.utils.inc.setup_logging import logger
 from typing import List, Optional
 
 class DiscordBot(commands.Bot):

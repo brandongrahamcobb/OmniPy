@@ -15,11 +15,11 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
 from discord.ext import commands, tasks
-from py_vyrtuous.utils.handlers.message_manager import Paginator
-from py_vyrtuous.utils.handlers.pdf_manager import PDFManager
-from py_vyrtuous.utils.handlers.predicator import Predicator
-from py_vyrtuous.utils.handlers.sql_manager import perform_backup, setup_backup_directory
-from py_vyrtuous.utils.inc.helpers import *
+from omnipy.utils.handlers.message_manager import Paginator
+from omnipy.utils.handlers.pdf_manager import PDFManager
+from omnipy.utils.handlers.predicator import Predicator
+from omnipy.utils.handlers.sql_manager import perform_backup, setup_backup_directory
+from omnipy.utils.inc.helpers import *
 from typing import Dict, List, Literal, Optional
 
 import asyncio

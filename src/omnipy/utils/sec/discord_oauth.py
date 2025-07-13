@@ -15,7 +15,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
 from datetime import datetime, timedelta
-from py_vyrtuous.utils.inc.setup_logging import logger
+from omnipy.utils.inc.setup_logging import logger
 from quart import Quart, request, redirect
 
 import aiohttp
